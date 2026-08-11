@@ -202,7 +202,6 @@
             box-shadow: 4px 4px 0px #000;
             display: flex;
             align-items: center;
-            gap: 8px;
             text-decoration: none;
         }
 
@@ -226,7 +225,7 @@
     <div class="stage">
         <!-- Bouncing Fortune Cookie Button -->
         <button class="cookie-wrapper" id="cookieBtn" aria-label="Open Fortune Cookie">
-                <img src="fortune_cookie.png" alt="Button Icon" style="width: 100px; height: 100px; object-fit: contain;">
+                <img src="fortune_cookie.png" alt="Button Icon" style="width: 200px; height: 200px; object-fit: contain;">
             <!-- <svg class="pixel-cookie" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
                 <!-- Paper Stub Sticking Out -->
                <!-- <g id="paper-stub">
@@ -335,8 +334,9 @@
             }
 
             // Construct WhatsApp API URL with encoded message
+            const phoneNumber = "628979909291"
             const message = `🥠 *My Fortune Cookie Note:* \n\n"${userText}"`;
-            const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
+            const waUrl = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
 
             // Open WhatsApp share interface in a new tab
             window.open(waUrl, '_blank');
