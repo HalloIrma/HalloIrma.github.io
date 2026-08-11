@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Fortune Cookie</title>
+    <!-- Pixelated font import -->
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Color Palette matching the pixel cookie theme */
+            --bg-color: #babdc1;
+            --text-color: #2b2b2b;
+            
+            --cookie-main: #f5da7a;
+            --cookie-shadow-dark: #cda93c;
+            --cookie-shadow-med: #e6c15e;
+            --cookie-light-main: #fef8b8;
+            --cookie-specular: #ffffff;
+            
+            --paper-bg: #ffffff;
+            --paper-border: #2b2b2b;
+            --paper-text: #900c3f;
+            --whatsapp-green: #25d366;
+            --whatsapp-dark: #128c7e;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Press Start 2P', monospace;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+            /* Retro pixel grid background */
+            background-image: 
+                radial-gradient(#a3a7ab 15%, transparent 16%),
+                radial-gradient(#a3a7ab 15%, transparent 16%);
+            background-size: 30px 30px;
+            background-position: 0 0, 15px 15px;
+        }
+
+        h1 {
+            font-size: 1.1rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: #2b2b2b;
+            text-shadow: 2px 2px 0px #fff;
+            line-height: 1.6;
+            padding: 0 10px;
+        }
+
+        /* Centered Main Stage */
+        .stage {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            min-height: 380px;
+            width: 100%;
+        }
+
+        /* 
+           Bouncing Animation
+           ~113px vertical displacement (~3cm on standard 96 DPI displays)
+        */
+        @keyframes pixelBounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-113px);
+            }
+        }
+
+        .cookie-wrapper {
+            cursor: pointer;
+            position: relative;
+            animation: pixelBounce 1.5s infinite cubic-bezier(0.45, 0, 0.55, 1);
+            background: none;
+            border: none;
+            outline: none;
+            padding: 20px;
+            filter: drop-shadow(0px 6px 0px rgba(0,0,0,0.15));
+        }
+
+        .cookie-wrapper:active {
+            transform: scale(0.95);
+        }
+
+        /* Freeze bounce when cookie is cracked */
+        .cookie-wrapper.cracked {
+            animation: none;
+            cursor: default;
+        }
+
+        /* Pixel Art Cookie SVG Sizing */
+        .pixel-cookie {
+            width: 140px;
+            height: 140px;
+            display: block;
+            image-rendering: pixelated;
+        }
+
+        /* Cracking split transition */
+        #logical-left-half, #logical-right-half, #paper-stub {
+            transition: transform 0.4s steps(4);
+            transform-origin: center;
+        }
+
+        .cracked #logical-left-half {
+            transform: translate(-35px, 15px) rotate(-25deg);
+        }
+
+        .cracked #logical-right-half {
+            transform: translate(35px, 15px) rotate(25deg);
+        }
+
+        /* 
+           Editable Fortune Paper Container
+        */
+        .paper-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: absolute;
+            opacity: 0;
+            transform: translateY(20px) scale(0.5);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+            z-index: 10;
+            width: 320px;
+            max-width: 90vw;
+        }
+
+        .paper-container.show {
+            opacity: 1;
+            transform: translateY(-40px) scale(1);
+            pointer-events: auto;
+        }
+
+        .paper-box {
+            background-color: var(--paper-bg);
+            border: 4px solid var(--paper-border);
+            padding: 16px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 6px 6px 0px rgba(0,0,0,0.2);
+            position: relative;
+        }
+
+        .paper-label {
+            font-size: 0.55rem;
+            color: #666;
+            margin-bottom: 10px;
+            display: block;
+            text-transform: uppercase;
+        }
+
+        /* Editable Text Area inside the Fortune Paper */
+        .fortune-input {
+            width: 100%;
+            height: 80px;
+            background: transparent;
+            border: 2px dashed #bbb;
+            outline: none;
+            resize: none;
+            font-size: 0.65rem;
+            line-height: 1.6;
+            color: var(--paper-text);
+            text-transform: uppercase;
+            text-align: center;
+            padding: 8px;
+            user-select: text;
+        }
+
+        .fortune-input:focus {
+            border-color: var(--paper-border);
+            background-color: #fafafa;
+        }
+
+        /* WhatsApp Button */
+        .wa-btn {
+            margin-top: 15px;
+            background-color: var(--whatsapp-green);
+            color: white;
+            border: 4px solid #000;
+            padding: 12px 18px;
+            font-size: 0.6rem;
+            cursor: pointer;
+            box-shadow: 4px 4px 0px #000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .wa-btn:active {
+            box-shadow: none;
+            transform: translate(4px, 4px);
+        }
+
+        /* Instruction Subtext */
+        .instruction {
+            font-size: 0.6rem;
+            color: #2b2b2b;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>PIXEL FORTUNE COOKIE</h1>
+
+    <div class="stage">
+        <!-- Bouncing Fortune Cookie Button -->
+        <button class="cookie-wrapper" id="cookieBtn" aria-label="Open Fortune Cookie">
+            <svg class="pixel-cookie" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+                <!-- Paper Stub Sticking Out -->
+                <g id="paper-stub">
+                    <rect x="13" y="8" width="3" height="3" fill="var(--paper-bg)"/>
+                    <rect x="13" y="10" width="3" height="1" fill="#e0e0e0"/>
+                    <rect x="12" y="9" width="1" height="2" fill="#e0e0e0"/>
+                    <rect x="13" y="11" width="3" height="1" fill="var(--cookie-shadow-dark)"/>
+                </g>
+                
+                <!-- Main Cookie Body Split into Two Groups -->
+                <g id="cookie-full-body">
+                    <!-- Left Half -->
+                    <g id="logical-left-half">
+                        <rect x="4" y="3" width="5" height="1" fill="var(--cookie-shadow-dark)"/>
+                        <rect x="3" y="4" width="1" height="2" fill="var(--cookie-shadow-dark)"/>
+                        <rect x="2" y="6" width="1" height="1" fill="var(--cookie-shadow-dark)"/>
+                        <rect x="1" y="7" width="1" height="1" fill="var(--cookie-shadow-dark)"/>
+                        <rect x="1" y="8" width="2" height="1" fill="var(--cookie-shadow-dark)"/>
+                        <rect x="2" y="9" width="2" height="1" fill="var(--cookie-shadow-dark)"/>
+                        <rect x="3" y="10" width="4" height="1" fill="var(--cookie-shadow-dark)"/>
+                        <rect x="6" y="11" width="4" height="1" fill="var(--cookie-shadow-dark)"/>
+                        <rect x="9" y="10" width="3" height="1" fill="var(--cookie-shadow-dark)"/>
+                        
+                        <rect x="7" y="5" width="2" height="6" fill="var(--cookie-shadow-med)"/>
+                        
+                        <rect x="4" y="4" width="3" height="1" fill="var(--cookie-main)"/>
+                        <rect x="3" y="6" width="4" height="1" fill="var(--cookie-main)"/>
+                        <rect x="2" y="7" width="5" height="1" fill="var(--cookie-main)"/>
+                        <rect x="3" y="8" width="4" height="1" fill="var(--cookie-main)"/>
+                        <rect x="4" y="9" width="3" height="1" fill="var(--cookie-main)"/>
+                        
+                        <rect x="4" y="5" width="3" height="1" fill="var(--cookie-light-main)"/>
+                        <rect x="4" y="5" width="1" height="1" fill="var(--cookie-specular)"/>
+                    </g>
+                    
+                    <!-- Right Half -->
+                    <g id="logical-right-half">
+                        <rect x="9" y="3" width="2" height="1" fill="var(--cookie-shadow-dark)"/>
+                        <rect x="11" y="4" width="1" height="1" fill="var(--cookie-shadow-dark)"/>
+                        <rect x="12" y="5" width="1" height="4" fill="var(--cookie-shadow-dark)"/>
+                        <rect x="11" y="8" width="1" height="1" fill="var(--cookie-shadow-dark)"/>
+                        
+                        <rect x="9" y="5" width="1" height="5" fill="var(--cookie-shadow-med)"/>
+                        
+                        <rect x="9" y="4" width="2" height="1" fill="var(--cookie-main)"/>
+                        <rect x="10" y="5" width="2" height="1" fill="var(--cookie-main)"/>
+                        <rect x="10" y="6" width="2" height="1" fill="var(--cookie-shadow-med)"/>
+                        <rect x="10" y="7" width="2" height="1" fill="var(--cookie-shadow-med)"/>
+                        <rect x="10" y="8" width="1" height="2" fill="var(--cookie-main)"/>
+                        <rect x="11" y="9" width="1" height="1" fill="var(--cookie-main)"/>
+                        
+                        <rect x="9" y="4" width="1" height="1" fill="var(--cookie-light-main)"/>
+                    </g>
+                </g>
+            </svg>
+        </button>
+
+        <!-- Editable Fortune Paper & WhatsApp Action -->
+        <div class="paper-container" id="paperContainer">
+            <div class="paper-box">
+                <span class="paper-label">WRITE YOUR FORTUNE:</span>
+                <textarea class="fortune-input" id="fortuneInput" placeholder="TYPE YOUR MESSAGE HERE..."></textarea>
+            </div>
+            
+            <button class="wa-btn" id="sendWaBtn">
+                SEND TO WHATSAPP
+            </button>
+        </div>
+
+        <p class="instruction" id="instruction">CLICK COOKIE TO CRACK</p>
+    </div>
+
+    <script>
+        const cookieBtn = document.getElementById('cookieBtn');
+        const paperContainer = document.getElementById('paperContainer');
+        const fortuneInput = document.getElementById('fortuneInput');
+        const sendWaBtn = document.getElementById('sendWaBtn');
+        const instruction = document.getElementById('instruction');
+
+        let isCracked = false;
+
+        // Click to Crack Cookie & Reveal Editable Paper
+        cookieBtn.addEventListener('click', () => {
+            if (isCracked) return;
+
+            isCracked = true;
+            
+            // Stop bouncing animation and split cookie halves
+            cookieBtn.classList.add('cracked');
+            
+            // Show editable paper container
+            setTimeout(() => {
+                paperContainer.classList.add('show');
+                instruction.style.display = 'none';
+                fortuneInput.focus();
+            }, 300);
+        });
+
+        // Send Editable Fortune Content to WhatsApp
+        sendWaBtn.addEventListener('click', () => {
+            const userText = fortuneInput.value.trim();
+
+            if (!userText) {
+                alert("Please write a fortune before sending!");
+                return;
+            }
+
+            // Construct WhatsApp API URL with encoded message
+            const message = `🥠 *My Fortune Cookie Note:* \n\n"${userText}"`;
+            const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
+
+            // Open WhatsApp share interface in a new tab
+            window.open(waUrl, '_blank');
+        });
+    </script>
+</body>
+</html>
